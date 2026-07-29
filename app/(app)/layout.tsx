@@ -7,23 +7,22 @@ import { SidebarNav } from "@/components/layout/sidebar-nav";
 import { TopBar } from "@/components/layout/top-bar";
 
 /**
- * Authenticated app shell: persistent sidebar (desktop) + top bar with command
- * palette and user menu. The proxy already guards these routes; this re-checks
- * server-side and passes the user's email into the shell.
+ * Authenticated app shell. The proxy auto-logs-in the single owner account, so
+ * by the time we're here a session exists. We re-check server-side as a guard.
  */
 export default async function AppLayout({ children }: { children: ReactNode }) {
-  let email: string | null = null;
+  let signedIn = false;
   try {
     const supabase = await createClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    email = user?.email ?? null;
+    signedIn = !!user;
   } catch {
-    // Supabase unreachable (e.g. placeholder keys) — treat as signed out.
+    // Supabase unreachable — fall through to auto-login.
   }
 
-  if (!email) redirect(routes.login);
+  if (!signedIn) redirect("/auth/auto");
 
   return (
     <div className="flex min-h-dvh">
@@ -38,7 +37,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <TopBar email={email} />
+        <TopBar />
         <main className="flex-1">{children}</main>
       </div>
     </div>

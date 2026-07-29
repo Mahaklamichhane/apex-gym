@@ -1,7 +1,6 @@
 /** Canonical app routes. Reference these instead of hardcoding path strings. */
 export const routes = {
   home: "/",
-  login: "/login",
 
   dashboard: "/dashboard",
   workout: "/workout",

@@ -1,14 +1,26 @@
 # Apex Gym — Database
 
-Runnable PostgreSQL for Supabase. Files run **in order**.
+Runnable PostgreSQL for Supabase.
 
 ```
+setup.sql              ⭐ ALL of the below, in order — paste once into the SQL Editor
 migrations/
   0001_schema.sql      types · tables · indexes · views
   0002_functions.sql   updated_at · e1rm · PR detection · session finalize · new-user profile
   0003_rls.sql         Row Level Security on every table
 seed/
   0001_reference.sql   muscle groups · equipment · ~26 global exercises · achievements
+```
+
+## Fastest path — Supabase SQL Editor
+Open `setup.sql`, copy the whole file, paste into a new query in the Supabase SQL
+Editor, and **Run once**. It runs schema → functions → RLS → seed in the right order.
+`setup.sql` is generated from the `migrations/` + `seed/` files (those stay the source
+of truth); regenerate it after editing them:
+```bash
+{ echo '-- Apex Gym combined setup'; \
+  cat migrations/0001_schema.sql migrations/0002_functions.sql \
+      migrations/0003_rls.sql seed/0001_reference.sql; } > setup.sql
 ```
 
 ## Run it

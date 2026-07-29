@@ -59,20 +59,50 @@ export function WorkoutMode({ id }: { id: string }) {
 
   if (session.status === "completed") {
     return (
-      <div className="space-y-4 text-center">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Workout complete 💪
-        </h1>
-        <p className="text-muted-foreground">
-          {session.totalVolumeKg
-            ? `${Math.round(session.totalVolumeKg).toLocaleString()} kg total volume`
-            : "Nice work."}
-          {session.durationSeconds
-            ? ` · ${formatDuration(session.durationSeconds)}`
-            : ""}
-        </p>
-        <Button onClick={() => router.push(routes.dashboard)}>
-          Back to dashboard
+      <div className="space-y-6">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {session.name ?? "Workout"}
+          </h1>
+          <p className="text-muted-foreground">
+            {new Date(session.startedAt).toLocaleDateString(undefined, {
+              weekday: "long",
+              month: "short",
+              day: "numeric",
+            })}
+            {session.totalVolumeKg
+              ? ` · ${Math.round(session.totalVolumeKg).toLocaleString()} kg`
+              : ""}
+            {session.durationSeconds
+              ? ` · ${formatDuration(session.durationSeconds)}`
+              : ""}
+          </p>
+        </div>
+
+        <div className="space-y-4">
+          {session.exercises.map((se) => (
+            <section key={se.id} className="rounded-xl border p-4">
+              <h2 className="mb-2 font-medium">{se.exercise.name}</h2>
+              <div className="space-y-1 text-sm">
+                {se.sets.map((set, i) => (
+                  <div
+                    key={set.id}
+                    className="flex items-center gap-3 text-muted-foreground"
+                  >
+                    <span className="w-6 text-center">{i + 1}</span>
+                    <span className="text-foreground">
+                      {set.weightKg ?? "—"} kg × {set.reps ?? "—"}
+                    </span>
+                    {set.isCompleted && <span className="text-xs">✓</span>}
+                  </div>
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+
+        <Button variant="outline" onClick={() => router.push(routes.history)}>
+          Back to history
         </Button>
       </div>
     );

@@ -70,6 +70,38 @@ export interface SessionExercise {
   sets: LoggedSet[];
 }
 
+export interface SessionSummary {
+  id: string;
+  name: string | null;
+  startedAt: string;
+  durationSeconds: number | null;
+  totalVolumeKg: number | null;
+  exerciseCount: number;
+}
+
+export interface PRSummary {
+  id: string;
+  exerciseName: string;
+  prType: string;
+  value: number;
+  achievedAt: string;
+}
+
+export interface DashboardData {
+  totalWorkouts: number;
+  weeklyVolumeKg: number;
+  streakDays: number;
+  currentWeightKg: number | null;
+  recentSessions: SessionSummary[];
+  latestPRs: PRSummary[];
+}
+
+export interface BodyMeasurement {
+  id: string;
+  measuredAt: string;
+  weightKg: number | null;
+}
+
 export interface WorkoutSession {
   id: string;
   name: string | null;

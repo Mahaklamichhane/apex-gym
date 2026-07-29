@@ -11,6 +11,7 @@ import {
   Trophy,
   Sparkles,
   Activity,
+  History,
   type LucideIcon,
 } from "lucide-react";
 import { routes } from "./routes";
@@ -30,6 +31,7 @@ export const navGroups: NavGroup[] = [
     items: [
       { label: "Dashboard", href: routes.dashboard, icon: LayoutDashboard },
       { label: "Workout", href: routes.workout, icon: Dumbbell },
+      { label: "History", href: routes.history, icon: History },
       { label: "Templates", href: routes.templates, icon: ClipboardList },
       { label: "Exercises", href: routes.exercises, icon: Activity },
     ],

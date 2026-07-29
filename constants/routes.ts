@@ -4,6 +4,7 @@ export const routes = {
 
   dashboard: "/dashboard",
   workout: "/workout",
+  history: "/history",
   session: (id: string) => `/workout/${id}`,
   templates: "/templates",
   template: (id: string) => `/templates/${id}`,

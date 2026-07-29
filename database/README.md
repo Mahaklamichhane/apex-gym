@@ -12,6 +12,12 @@ seed/
   0001_reference.sql   muscle groups · equipment · ~26 global exercises · achievements
 ```
 
+## Clean slate — `reset.sql`
+`setup.sql` is not re-runnable (a half-finished run leaves enum types behind, so a second
+run fails with `type "unit_system" already exists`). If setup ever errors partway, run
+**`reset.sql`** first — it drops and recreates the `public` schema (⚠️ deletes all data,
+safe on a fresh project) — then run `setup.sql` again from scratch.
+
 ## Fastest path — Supabase SQL Editor
 Open `setup.sql`, copy the whole file, paste into a new query in the Supabase SQL
 Editor, and **Run once**. It runs schema → functions → RLS → seed in the right order.

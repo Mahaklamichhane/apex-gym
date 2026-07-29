@@ -36,3 +36,48 @@ export interface Exercise {
   primaryMuscles: MuscleGroup[];
   secondaryMuscles: MuscleGroup[];
 }
+
+export type SetType =
+  | "normal"
+  | "warmup"
+  | "drop"
+  | "failure"
+  | "partial"
+  | "paused";
+export type SessionStatus = "active" | "completed" | "abandoned";
+
+export interface LoggedSet {
+  id: string;
+  sessionExerciseId: string;
+  position: number;
+  weightKg: number | null;
+  reps: number | null;
+  rpe: number | null;
+  setType: SetType;
+  isCompleted: boolean;
+  notes: string | null;
+}
+
+export interface SessionExercise {
+  id: string;
+  sessionId: string;
+  exerciseId: string;
+  position: number;
+  notes: string | null;
+  exercise: Pick<Exercise, "id" | "name"> & {
+    primaryMuscles: MuscleGroup[];
+  };
+  sets: LoggedSet[];
+}
+
+export interface WorkoutSession {
+  id: string;
+  name: string | null;
+  status: SessionStatus;
+  startedAt: string;
+  endedAt: string | null;
+  durationSeconds: number | null;
+  totalVolumeKg: number | null;
+  notes: string | null;
+  exercises: SessionExercise[];
+}

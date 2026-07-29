@@ -18,6 +18,17 @@ Motion · Lucide · Vercel · pnpm.
 ## Built so far
 - ✅ **Database layer** — runnable SQL in [`database/`](database/README.md): schema, triggers,
   RLS, and a seed of 18 muscle groups / 9 equipment / 26 global exercises / 11 achievements.
+- ✅ **App scaffold (Phase 0)** — Next.js 16 + React 19 + Tailwind v4, dark-first theme,
+  Supabase clients (browser/server) + auth proxy, TanStack Query + next-themes providers,
+  Zod schema pattern, env validation. Builds & typechecks clean.
+
+## Local development
+```bash
+pnpm install
+cp .env.example .env.local   # then paste your real Supabase URL + anon key
+pnpm dev                     # http://localhost:3000
+```
+Regenerate DB types after schema changes: see [`types/database.ts`](types/database.ts).
 
 ## The five decisions that shape everything
 - **Offline is scoped to the active workout only** — not the whole app (avoids the biggest debt trap).

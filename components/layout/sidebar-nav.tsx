@@ -26,13 +26,21 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
                 href={item.href}
                 onClick={onNavigate}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                  "group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                   active
-                    ? "bg-accent text-accent-foreground"
+                    ? "bg-primary/10 text-primary"
                     : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
                 )}
               >
-                <Icon className="size-4 shrink-0" />
+                {active && (
+                  <span className="absolute top-1/2 left-0 h-4 w-1 -translate-y-1/2 rounded-r-full bg-primary" />
+                )}
+                <Icon
+                  className={cn(
+                    "size-4 shrink-0 transition-transform group-hover:scale-110",
+                    active && "text-primary",
+                  )}
+                />
                 {item.label}
               </Link>
             );

@@ -5,6 +5,7 @@ import {
   ClipboardList,
   Activity,
   Ruler,
+  Trophy,
   type LucideIcon,
 } from "lucide-react";
 import { routes } from "./routes";
@@ -35,6 +36,12 @@ export const navGroups: NavGroup[] = [
   {
     heading: "Track",
     items: [{ label: "Body", href: routes.body, icon: Ruler }],
+  },
+  {
+    heading: "Community",
+    items: [
+      { label: "Leaderboard", href: routes.leaderboard, icon: Trophy },
+    ],
   },
 ];
 

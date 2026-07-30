@@ -4,6 +4,7 @@ export const routes = {
   login: "/login",
 
   dashboard: "/dashboard",
+  leaderboard: "/leaderboard",
   workout: "/workout",
   history: "/history",
   session: (id: string) => `/workout/${id}`,

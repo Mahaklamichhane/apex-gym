@@ -4,6 +4,7 @@ import type {
   PRSummary,
   SessionSummary,
 } from "@/types/domain";
+import { MIN_WORKOUT_SECONDS } from "@/constants/workout";
 
 const PR_TYPE_LABEL: Record<string, string> = {
   max_weight: "Heaviest",
@@ -73,12 +74,17 @@ export async function fetchDashboard(
 ): Promise<DashboardData> {
   const recentSessions = await fetchRecentSessions(supabase, 60);
 
+  // Only sessions >= 30 min count toward stats (streak, count, volume).
+  const qualifying = recentSessions.filter(
+    (s) => (s.durationSeconds ?? 0) >= MIN_WORKOUT_SECONDS,
+  );
+
   const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-  const weeklyVolumeKg = recentSessions
+  const weeklyVolumeKg = qualifying
     .filter((s) => new Date(s.startedAt).getTime() >= weekAgo)
     .reduce((sum, s) => sum + (s.totalVolumeKg ?? 0), 0);
 
-  const streakDays = computeStreak(recentSessions.map((s) => s.startedAt));
+  const streakDays = computeStreak(qualifying.map((s) => s.startedAt));
 
   const { data: prRows } = await supabase
     .from("personal_records")
@@ -111,7 +117,7 @@ export async function fetchDashboard(
     .maybeSingle();
 
   return {
-    totalWorkouts: recentSessions.length,
+    totalWorkouts: qualifying.length,
     weeklyVolumeKg,
     streakDays,
     currentWeightKg: (weightRow as { weight_kg: number } | null)?.weight_kg ?? null,

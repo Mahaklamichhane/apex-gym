@@ -4,10 +4,11 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Dumbbell, Loader2, Plus, Trophy } from "lucide-react";
+import { Dumbbell, Plus, Trophy } from "lucide-react";
 import { useSession, useSessionMutations } from "../hooks/use-workout";
 import { SetRow } from "./set-row";
 import { AddExerciseDialog } from "./add-exercise-dialog";
+import { FinishButton } from "./finish-button";
 import { createClient } from "@/services/supabase/client";
 import { fetchSessionPRs } from "@/services/workouts/queries";
 import { prTypeLabel } from "@/services/dashboard/queries";
@@ -152,7 +153,6 @@ export function WorkoutMode({ id }: { id: string }) {
   }
 
   async function finish() {
-    if (!confirm("Finish this workout?")) return;
     try {
       await mut.finish.mutateAsync();
       setCelebrate(true);
@@ -178,10 +178,7 @@ export function WorkoutMode({ id }: { id: string }) {
             {session.name ?? "Workout"}
           </h1>
         </div>
-        <Button onClick={finish} disabled={mut.finish.isPending}>
-          {mut.finish.isPending && <Loader2 className="size-4 animate-spin" />}
-          Finish
-        </Button>
+        <FinishButton onFinish={finish} pending={mut.finish.isPending} />
       </header>
 
       {session.exercises.length === 0 ? (

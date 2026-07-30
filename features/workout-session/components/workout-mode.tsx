@@ -2,15 +2,21 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Dumbbell, Loader2, Plus } from "lucide-react";
+import { Dumbbell, Loader2, Plus, Trophy } from "lucide-react";
 import { useSession, useSessionMutations } from "../hooks/use-workout";
 import { SetRow } from "./set-row";
 import { AddExerciseDialog } from "./add-exercise-dialog";
+import { createClient } from "@/services/supabase/client";
+import { fetchSessionPRs } from "@/services/workouts/queries";
+import { prTypeLabel } from "@/services/dashboard/queries";
 import { routes } from "@/constants/routes";
 import { Button } from "@/components/ui/button";
 import { EmptyState, ErrorState } from "@/components/states";
 import { Skeleton } from "@/components/ui/skeleton";
+import { FadeIn, Stagger, StaggerItem } from "@/components/motion";
+import { Confetti } from "@/components/motion/confetti";
 
 function formatDuration(totalSeconds: number) {
   const h = Math.floor(totalSeconds / 3600);
@@ -25,13 +31,16 @@ function Elapsed({ startedAt }: { startedAt: string }) {
   const [now, setNow] = useState<number | null>(null);
   useEffect(() => {
     const start = new Date(startedAt).getTime();
-    const tick = () => setNow(Math.max(0, Math.floor((Date.now() - start) / 1000)));
+    const tick = () =>
+      setNow(Math.max(0, Math.floor((Date.now() - start) / 1000)));
     tick();
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
   }, [startedAt]);
   return (
-    <span className="tabular-nums">{now === null ? "0:00" : formatDuration(now)}</span>
+    <span className="tabular-nums">
+      {now === null ? "0:00" : formatDuration(now)}
+    </span>
   );
 }
 
@@ -39,6 +48,15 @@ export function WorkoutMode({ id }: { id: string }) {
   const router = useRouter();
   const { data: session, isPending, isError } = useSession(id);
   const mut = useSessionMutations(id);
+  const [celebrate, setCelebrate] = useState(false);
+
+  const isCompleted = session?.status === "completed";
+  const { data: prs } = useQuery({
+    queryKey: ["session-prs", id],
+    queryFn: () => fetchSessionPRs(createClient(), id),
+    enabled: isCompleted,
+    staleTime: Infinity,
+  });
 
   if (isPending) {
     return (
@@ -59,10 +77,13 @@ export function WorkoutMode({ id }: { id: string }) {
 
   if (session.status === "completed") {
     return (
-      <div className="space-y-6">
-        <div className="space-y-1">
+      <FadeIn className="space-y-6">
+        {celebrate && <Confetti />}
+
+        <div className="space-y-2 text-center">
+          {celebrate && <p className="text-4xl">🎉</p>}
           <h1 className="text-2xl font-semibold tracking-tight">
-            {session.name ?? "Workout"}
+            {celebrate ? "Workout complete!" : (session.name ?? "Workout")}
           </h1>
           <p className="text-muted-foreground">
             {new Date(session.startedAt).toLocaleDateString(undefined, {
@@ -78,6 +99,28 @@ export function WorkoutMode({ id }: { id: string }) {
               : ""}
           </p>
         </div>
+
+        {prs && prs.length > 0 && (
+          <div className="space-y-2 rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4">
+            <p className="flex items-center gap-2 font-medium text-amber-500">
+              <Trophy className="size-4" /> New personal records!
+            </p>
+            <ul className="space-y-1 text-sm">
+              {prs.map((pr) => (
+                <li key={pr.id} className="flex justify-between">
+                  <span>
+                    {pr.exerciseName} · {prTypeLabel(pr.prType)}
+                  </span>
+                  <span className="font-semibold tabular-nums">
+                    {pr.prType === "max_reps"
+                      ? `${pr.value} reps`
+                      : `${pr.value} kg`}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         <div className="space-y-4">
           {session.exercises.map((se) => (
@@ -101,10 +144,10 @@ export function WorkoutMode({ id }: { id: string }) {
           ))}
         </div>
 
-        <Button variant="outline" onClick={() => router.push(routes.history)}>
-          Back to history
+        <Button className="w-full" onClick={() => router.push(routes.dashboard)}>
+          Done
         </Button>
-      </div>
+      </FadeIn>
     );
   }
 
@@ -112,9 +155,8 @@ export function WorkoutMode({ id }: { id: string }) {
     if (!confirm("Finish this workout?")) return;
     try {
       await mut.finish.mutateAsync();
+      setCelebrate(true);
       toast.success("Workout saved!");
-      router.push(routes.dashboard);
-      router.refresh();
     } catch {
       toast.error("Couldn't finish the workout.");
     }
@@ -149,68 +191,70 @@ export function WorkoutMode({ id }: { id: string }) {
           description="Add your first exercise to start logging sets."
         />
       ) : (
-        <div className="space-y-4">
+        <Stagger className="space-y-4">
           {session.exercises.map((se) => (
-            <section key={se.id} className="rounded-xl border p-4">
-              <div className="mb-3 flex items-start justify-between gap-2">
-                <div>
-                  <h2 className="font-medium">{se.exercise.name}</h2>
-                  <p className="text-sm text-muted-foreground">
-                    {se.exercise.primaryMuscles.map((mm) => mm.name).join(", ")}
-                  </p>
+            <StaggerItem key={se.id}>
+              <section className="rounded-xl border p-4">
+                <div className="mb-3 flex items-start justify-between gap-2">
+                  <div>
+                    <h2 className="font-medium">{se.exercise.name}</h2>
+                    <p className="text-sm text-muted-foreground">
+                      {se.exercise.primaryMuscles.map((mm) => mm.name).join(", ")}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => mut.removeExercise.mutate(se.id)}
+                    className="text-sm text-muted-foreground hover:text-destructive"
+                  >
+                    Remove
+                  </button>
                 </div>
+
+                {se.sets.length > 0 && (
+                  <div className="mb-2 grid grid-cols-[2rem_1fr_1fr_auto_auto] gap-2 px-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                    <span className="text-center">#</span>
+                    <span className="text-center">kg</span>
+                    <span className="text-center">reps</span>
+                    <span className="text-center">✓</span>
+                    <span />
+                  </div>
+                )}
+
+                <div className="space-y-1">
+                  {se.sets.map((set, i) => (
+                    <SetRow
+                      key={set.id}
+                      set={set}
+                      index={i}
+                      onSave={(patch) =>
+                        mut.updateSet.mutate({ setId: set.id, patch })
+                      }
+                      onToggle={(completed) =>
+                        mut.updateSet.mutate({
+                          setId: set.id,
+                          patch: { isCompleted: completed },
+                        })
+                      }
+                      onDelete={() => mut.deleteSet.mutate(set.id)}
+                    />
+                  ))}
+                </div>
+
                 <button
-                  onClick={() => mut.removeExercise.mutate(se.id)}
-                  className="text-sm text-muted-foreground hover:text-destructive"
+                  onClick={() =>
+                    mut.addSet.mutate({
+                      sessionExerciseId: se.id,
+                      position: se.sets.length,
+                    })
+                  }
+                  className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed py-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
                 >
-                  Remove
+                  <Plus className="size-4" /> Add set
                 </button>
-              </div>
-
-              {se.sets.length > 0 && (
-                <div className="mb-2 grid grid-cols-[2rem_1fr_1fr_auto_auto] gap-2 px-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                  <span className="text-center">#</span>
-                  <span className="text-center">kg</span>
-                  <span className="text-center">reps</span>
-                  <span className="text-center">✓</span>
-                  <span />
-                </div>
-              )}
-
-              <div className="space-y-1">
-                {se.sets.map((set, i) => (
-                  <SetRow
-                    key={set.id}
-                    set={set}
-                    index={i}
-                    onSave={(patch) =>
-                      mut.updateSet.mutate({ setId: set.id, patch })
-                    }
-                    onToggle={(completed) =>
-                      mut.updateSet.mutate({
-                        setId: set.id,
-                        patch: { isCompleted: completed },
-                      })
-                    }
-                    onDelete={() => mut.deleteSet.mutate(set.id)}
-                  />
-                ))}
-              </div>
-
-              <button
-                onClick={() =>
-                  mut.addSet.mutate({
-                    sessionExerciseId: se.id,
-                    position: se.sets.length,
-                  })
-                }
-                className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed py-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
-              >
-                <Plus className="size-4" /> Add set
-              </button>
-            </section>
+              </section>
+            </StaggerItem>
           ))}
-        </div>
+        </Stagger>
       )}
 
       <AddExerciseDialog

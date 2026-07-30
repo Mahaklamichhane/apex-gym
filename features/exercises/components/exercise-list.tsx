@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState, ErrorState, ListSkeleton } from "@/components/states";
+import { FadeIn } from "@/components/motion";
 
 export function ExerciseList() {
   const { data: exercises, isPending, isError } = useExercises();
@@ -31,7 +32,7 @@ export function ExerciseList() {
   }, [exercises, search, muscle]);
 
   return (
-    <div className="space-y-5">
+    <FadeIn className="space-y-5">
       <Input
         placeholder="Search exercises…"
         value={search}
@@ -92,7 +93,7 @@ export function ExerciseList() {
           ))}
         </ul>
       )}
-    </div>
+    </FadeIn>
   );
 }
 

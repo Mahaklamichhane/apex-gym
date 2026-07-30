@@ -69,8 +69,15 @@ export function useSessionMutations(sessionId: string) {
 
   const finish = useMutation({
     mutationFn: () => m.finishSession(supabase, sessionId),
-    onSuccess: () =>
-      qc.invalidateQueries({ queryKey: queryKeys.sessions.all() }),
+    onSuccess: async () => {
+      // Refresh the detail view (so it flips to the completed summary) and lists.
+      await qc.invalidateQueries({
+        queryKey: queryKeys.sessions.detail(sessionId),
+      });
+      qc.invalidateQueries({ queryKey: queryKeys.sessions.all() });
+      qc.invalidateQueries({ queryKey: ["session-prs", sessionId] });
+      qc.invalidateQueries({ queryKey: queryKeys.dashboard() });
+    },
   });
 
   return { addExercise, removeExercise, addSet, updateSet, deleteSet, finish };

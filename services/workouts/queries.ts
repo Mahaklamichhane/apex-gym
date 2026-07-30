@@ -124,6 +124,38 @@ export async function fetchActiveSession(
   return data ? mapSession(data as unknown as RawSession) : null;
 }
 
+export interface SessionPR {
+  id: string;
+  exerciseName: string;
+  prType: string;
+  value: number;
+}
+
+/** PRs achieved during a specific session (for the finish celebration). */
+export async function fetchSessionPRs(
+  supabase: SupabaseClient,
+  sessionId: string,
+): Promise<SessionPR[]> {
+  const { data, error } = await supabase
+    .from("personal_records")
+    .select("id, pr_type, value, exercises(name)")
+    .eq("session_id", sessionId);
+  if (error) throw error;
+  return (
+    (data as unknown as Array<{
+      id: string;
+      pr_type: string;
+      value: number;
+      exercises: { name: string } | null;
+    }>) ?? []
+  ).map((r) => ({
+    id: r.id,
+    exerciseName: r.exercises?.name ?? "Exercise",
+    prType: r.pr_type,
+    value: r.value,
+  }));
+}
+
 export async function fetchSession(
   supabase: SupabaseClient,
   id: string,

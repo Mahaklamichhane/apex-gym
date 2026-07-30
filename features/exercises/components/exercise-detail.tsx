@@ -7,6 +7,7 @@ import { routes } from "@/constants/routes";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState, ErrorState } from "@/components/states";
+import { FadeIn } from "@/components/motion";
 
 export function ExerciseDetail({ id }: { id: string }) {
   const { data: ex, isPending, isError } = useExercise(id);
@@ -27,7 +28,7 @@ export function ExerciseDetail({ id }: { id: string }) {
     );
 
   return (
-    <div className="space-y-6">
+    <FadeIn className="space-y-6">
       <Link
         href={routes.exercises}
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
@@ -92,7 +93,7 @@ export function ExerciseDetail({ id }: { id: string }) {
           training.
         </p>
       </Section>
-    </div>
+    </FadeIn>
   );
 }
 

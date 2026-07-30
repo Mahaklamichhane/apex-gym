@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { Check, Trash2 } from "lucide-react";
 import type { LoggedSet } from "@/types/domain";
 import { cn } from "@/lib/utils";
@@ -65,9 +66,10 @@ export function SetRow({
         onBlur={saveReps}
         className="h-9 text-center"
       />
-      <button
+      <motion.button
         type="button"
         onClick={() => onToggle(!set.isCompleted)}
+        whileTap={{ scale: 0.85 }}
         aria-label={set.isCompleted ? "Mark incomplete" : "Mark complete"}
         className={cn(
           "flex size-9 items-center justify-center rounded-lg border transition-colors",
@@ -76,8 +78,15 @@ export function SetRow({
             : "hover:bg-accent",
         )}
       >
-        <Check className="size-4" />
-      </button>
+        <motion.span
+          key={set.isCompleted ? "done" : "todo"}
+          initial={{ scale: set.isCompleted ? 0.4 : 1, rotate: set.isCompleted ? -30 : 0 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: "spring", stiffness: 500, damping: 18 }}
+        >
+          <Check className="size-4" />
+        </motion.span>
+      </motion.button>
       <button
         type="button"
         onClick={onDelete}

@@ -5,6 +5,7 @@ import { createClient } from "@/services/supabase/server";
 import { routes } from "@/constants/routes";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
 import { TopBar } from "@/components/layout/top-bar";
+import { Logo } from "@/components/brand/logo";
 
 /** Authenticated app shell. Each signed-in user sees only their own data (RLS). */
 export default async function AppLayout({ children }: { children: ReactNode }) {
@@ -29,11 +30,8 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-dvh">
       <aside className="hidden w-64 shrink-0 flex-col border-r px-3 py-4 lg:flex">
-        <Link
-          href={routes.dashboard}
-          className="mb-6 px-3 text-lg font-semibold tracking-tight"
-        >
-          Apex Gym
+        <Link href={routes.dashboard} className="mb-6 px-2">
+          <Logo />
         </Link>
         <SidebarNav />
       </aside>

@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
 import type { LucideIcon } from "lucide-react";
 import { Dumbbell, Flame, Trophy, TrendingUp, Plus, Weight } from "lucide-react";
+import { createClient } from "@/services/supabase/client";
 import { useDashboard } from "../hooks/use-dashboard";
 import { prTypeLabel } from "@/services/dashboard/queries";
 import { routes } from "@/constants/routes";
@@ -13,8 +15,29 @@ import { EmptyState } from "@/components/states";
 import { FadeIn, Stagger, StaggerItem, Tappable } from "@/components/motion";
 import { CountUp } from "@/components/motion/count-up";
 
+function greeting() {
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 18) return "Good afternoon";
+  return "Good evening";
+}
+
 export function Dashboard() {
   const { data, isPending } = useDashboard();
+  const { data: name } = useQuery({
+    queryKey: ["me-name"],
+    queryFn: async () => {
+      const {
+        data: { user },
+      } = await createClient().auth.getUser();
+      return (
+        (user?.user_metadata?.display_name as string | undefined) ??
+        user?.email?.split("@")[0] ??
+        "Athlete"
+      );
+    },
+    staleTime: Infinity,
+  });
 
   return (
     <div className="space-y-8">
@@ -23,7 +46,8 @@ export function Dashboard() {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <p className="text-sm font-medium tracking-wide text-muted-foreground">
-              Dashboard
+              {greeting()}
+              {name ? `, ${name}` : ""} 👋
             </p>
             <h1 className="text-gradient text-3xl font-semibold tracking-tight">
               What should I do today?

@@ -3,8 +3,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { env } from "@/lib/env";
 import type { Database } from "@/types/database";
 
-// Only the auto-login / callback routes are reachable without a session.
-const PUBLIC_ROUTES = ["/auth"];
+// Reachable without a session.
+const PUBLIC_ROUTES = ["/login"];
 
 /**
  * Refreshes the Supabase session cookie on every request and guards private
@@ -51,8 +51,16 @@ export async function updateSession(request: NextRequest) {
 
   if (!user && !isPublic) {
     const url = request.nextUrl.clone();
-    url.pathname = "/auth/auto";
+    url.pathname = "/login";
     url.searchParams.set("redirectTo", path);
+    return NextResponse.redirect(url);
+  }
+
+  // Already signed in but sitting on /login → send to the app.
+  if (user && path === "/login") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/dashboard";
+    url.search = "";
     return NextResponse.redirect(url);
   }
 

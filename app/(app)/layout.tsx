@@ -6,23 +6,25 @@ import { routes } from "@/constants/routes";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
 import { TopBar } from "@/components/layout/top-bar";
 
-/**
- * Authenticated app shell. The proxy auto-logs-in the single owner account, so
- * by the time we're here a session exists. We re-check server-side as a guard.
- */
+/** Authenticated app shell. Each signed-in user sees only their own data (RLS). */
 export default async function AppLayout({ children }: { children: ReactNode }) {
-  let signedIn = false;
+  let name: string | null = null;
   try {
     const supabase = await createClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    signedIn = !!user;
+    if (user) {
+      name =
+        (user.user_metadata?.display_name as string | undefined) ??
+        user.email?.split("@")[0] ??
+        "Athlete";
+    }
   } catch {
-    // Supabase unreachable — fall through to auto-login.
+    // Supabase unreachable — treat as signed out.
   }
 
-  if (!signedIn) redirect("/auth/auto");
+  if (!name) redirect(routes.login);
 
   return (
     <div className="flex min-h-dvh">
@@ -37,7 +39,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <TopBar />
+        <TopBar name={name} />
         <main className="flex-1">{children}</main>
       </div>
     </div>

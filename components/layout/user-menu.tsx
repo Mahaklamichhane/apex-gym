@@ -19,7 +19,11 @@ export function UserMenu({ name }: { name: string }) {
   const initials = name.slice(0, 2).toUpperCase();
 
   async function signOut() {
-    await createClient().auth.signOut();
+    try {
+      await createClient().auth.signOut();
+    } catch {
+      // Ignore network hiccups — we still send the user to the login page.
+    }
     router.push(routes.login);
     router.refresh();
   }
